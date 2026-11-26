@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090d1c">
+    <meta name="description" content="SkyCast — your intelligent, real-time weather dashboard.">
+    <title>SkyCast — Smart Weather Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="#home" aria-label="SkyCast home">
+                <span class="brand-mark"><i class="fa-solid fa-cloud-bolt"></i></span>
+                <span>sky<span class="brand-accent">cast</span><small>SMART WEATHER</small></span>
+            </a>
+            <p class="nav-label">MENU</p>
+            <nav class="side-nav" aria-label="Main navigation">
+                <a class="nav-link active" href="#home"><i class="fa-solid fa-grid-2"></i><span>Overview</span></a>
+                <a class="nav-link" href="#forecast"><i class="fa-solid fa-chart-line"></i><span>Forecast</span></a>
+                <a class="nav-link" href="#weatherMap"><i class="fa-regular fa-map"></i><span>Weather map</span></a>
+                <button class="nav-link" id="favoritesNav"><i class="fa-regular fa-heart"></i><span>Saved places</span></button>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="sidebar-tip">
+                    <span class="tip-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <p>Your weather,<br><strong>beautifully clear.</strong></p>
+                    <span class="tip-orb"></span>
+                </div>
+                <button class="nav-link settings-link" id="settingsBtn"><i class="fa-solid fa-sliders"></i><span>Settings</span></button>
+                <div class="sidebar-foot"><span class="status-dot"></span> Live weather data</div>
+            </div>
+        </aside>
+
+        <main class="main-content" id="home">
+            <header class="topbar">
+                <div class="mobile-brand"><span class="brand-mark"><i class="fa-solid fa-cloud-bolt"></i></span> SkyCast</div>
+                <div class="welcome"><span class="eyebrow">YOUR PERSONAL WEATHER STATION</span><h1>Good day<span class="wave"> ✦</span></h1></div>
+                <div class="top-actions">
+                    <div class="search-wrap">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input id="cityInput" type="search" autocomplete="off" placeholder="Search any city..." aria-label="Search a city">
+                        <button id="searchBtn" class="search-submit" aria-label="Search"><i class="fa-solid fa-arrow-right"></i></button>
+                        <div id="suggestions" class="suggestions" role="listbox" hidden></div>
+                    </div>
+                    <button id="locationBtn" class="icon-button" title="Use my current location" aria-label="Use my current location"><i class="fa-solid fa-location-crosshairs"></i></button>
+                    <button id="themeToggle" class="icon-button" title="Toggle light theme" aria-label="Toggle theme"><i class="fa-regular fa-moon"></i></button>
+                    <button id="settingsTopBtn" class="avatar-button" aria-label="Open settings"><i class="fa-solid fa-gear"></i></button>
+                </div>
+            </header>
+
+            <div id="notice" class="notice" role="status" hidden></div>
+            <section id="recentSection" class="recent-row" aria-label="Recent and favorite places" hidden>
+                <span class="recent-label"><i class="fa-solid fa-clock-rotate-left"></i> RECENT</span>
+                <div id="recentList" class="chip-list"></div>
+                <button id="favoriteCurrentBtn" class="favorite-current"><i class="fa-regular fa-heart"></i> Save place</button>
+            </section>
+
+            <section class="hero-grid" aria-label="Current weather">
+                <article class="hero-card glass-card" id="weatherHero">
+                    <div class="hero-topline">
+                        <div class="location-heading"><span class="live-pill"><span></span> LIVE</span><button id="favoriteHeroBtn" class="heart-button" aria-label="Save current city"><i class="fa-regular fa-heart"></i></button></div>
+                        <button id="unitToggle" class="unit-switch" aria-label="Toggle temperature units"><span class="selected">°C</span><span>°F</span></button>
+                    </div>
+                    <div class="hero-content">
+                        <div class="hero-copy">
+                            <p id="weatherDate" class="hero-date">--</p>
+                            <h2 id="cityName">Loading weather...</h2>
+                            <p id="weatherDescription" class="condition-copy">Fetching the latest conditions</p>
+                            <div class="temp-line"><span id="temperature" class="hero-temp">--°</span><span class="temp-divider"></span><span class="feels-copy">Feels like <strong id="feelsLike">--°</strong></span></div>
+                            <div class="hero-range"><span><i class="fa-solid fa-arrow-up"></i> <b id="tempHigh">--°</b></span><span><i class="fa-solid fa-arrow-down"></i> <b id="tempLow">--°</b></span></div>
+                        </div>
+                        <div class="hero-art" aria-hidden="true"><div class="weather-glow"></div><i id="weatherIcon" class="fa-solid fa-cloud-sun hero-weather-icon"></i><span class="art-spark spark-one">✦</span><span class="art-spark spark-two">✧</span></div>
+                    </div>
+                    <div class="sun-track">
+                        <div class="sun-time"><i class="fa-solid fa-sun"></i><span>Sunrise</span><strong id="sunrise">--:--</strong></div>
+                        <div class="sun-progress"><span class="sun-progress-fill"></span><i class="fa-solid fa-sun"></i></div>
+                        <div class="sun-time sunset-time"><i class="fa-regular fa-moon"></i><span>Sunset</span><strong id="sunset">--:--</strong></div>
+                    </div>
+                </article>
+                <aside class="side-stack">
+                    <article class="mini-card glass-card air-card">
+                        <div class="mini-card-heading"><span class="metric-icon purple"><i class="fa-solid fa-wind"></i></span><span>AIR QUALITY</span><span id="airBadge" class="air-badge">—</span></div>
+                        <div class="air-number"><strong id="airIndex">--</strong><span> / 5</span></div>
+                        <p id="airDescription">Air quality index</p>
+                        <div class="air-scale"><span></span><span></span><span></span><span></span><span></span></div>
+                    </article>
+                    <article class="mini-card glass-card alert-card">
+                        <div class="mini-card-heading"><span class="metric-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></span><span>WEATHER ALERTS</span></div>
+                        <p id="alertText" class="alert-text">No active alerts reported</p>
+                        <small id="alertSource">From OpenWeather</small>
+                    </article>
+                </aside>
+            </section>
+
+            <section class="section-block" aria-labelledby="detailsTitle">
+                <div class="section-heading"><div><span class="eyebrow">AT A GLANCE</span><h2 id="detailsTitle">Today's details</h2></div><span class="updated-label"><i class="fa-regular fa-clock"></i> Updated just now</span></div>
+                <div class="metrics-grid">
+                    <article class="metric-card glass-card"><span class="metric-icon blue"><i class="fa-solid fa-droplet"></i></span><div><p>Humidity</p><strong id="humidity">--<small>%</small></strong></div><span class="metric-note">Relative humidity</span></article>
+                    <article class="metric-card glass-card"><span class="metric-icon cyan"><i class="fa-solid fa-wind"></i></span><div><p>Wind speed</p><strong id="windSpeed">--<small> km/h</small></strong></div><span class="metric-note">Current wind</span></article>
+                    <article class="metric-card glass-card"><span class="metric-icon violet"><i class="fa-solid fa-gauge-high"></i></span><div><p>Pressure</p><strong id="pressure">--<small> hPa</small></strong></div><span class="metric-note">Sea level pressure</span></article>
+                    <article class="metric-card glass-card"><span class="metric-icon teal"><i class="fa-solid fa-eye"></i></span><div><p>Visibility</p><strong id="visibility">--<small> km</small></strong></div><span class="metric-note">Horizontal visibility</span></article>
+                    <article class="metric-card glass-card"><span class="metric-icon gold"><i class="fa-solid fa-sun"></i></span><div><p>UV index</p><strong id="uvIndex">--</strong></div><span class="metric-note" id="uvNote">One Call 3.0 data</span></article>
+                    <article class="metric-card glass-card"><span class="metric-icon pink"><i class="fa-solid fa-cloud"></i></span><div><p>Cloud cover</p><strong id="cloudCover">--<small>%</small></strong></div><span class="metric-note">Sky coverage</span></article>
+                </div>
+            </section>
+
+            <section class="section-block" id="forecast" aria-labelledby="hourlyTitle">
+                <div class="section-heading"><div><span class="eyebrow">PLAN YOUR DAY</span><h2 id="hourlyTitle">Hourly forecast</h2></div><span class="section-side-note">Next 24 hours</span></div>
+                <div id="hourlyForecast" class="hourly-strip glass-card"><div class="loading-state"><span class="loader"></span> Loading forecast</div></div>
+            </section>
+
+            <section class="section-block" aria-labelledby="dailyTitle">
+                <div class="section-heading"><div><span class="eyebrow">LOOK AHEAD</span><h2 id="dailyTitle">7-day forecast</h2></div><span id="forecastAvailability" class="section-side-note">Daily outlook</span></div>
+                <div id="dailyForecast" class="daily-grid"><div class="loading-state"><span class="loader"></span> Loading forecast</div></div>
+            </section>
+
+            <section class="section-block map-section" id="weatherMap" aria-labelledby="mapTitle">
+                <div class="section-heading"><div><span class="eyebrow">EXPLORE CONDITIONS</span><h2 id="mapTitle">Weather map</h2></div><div class="map-layers" role="group" aria-label="Weather map layer">
+                    <button class="layer-button active" data-layer="temp_new">Temperature</button><button class="layer-button" data-layer="clouds_new">Clouds</button><button class="layer-button" data-layer="precipitation_new">Precipitation</button><button class="layer-button" data-layer="wind_new">Wind</button>
+                </div></div>
+                <div class="map-wrap glass-card"><div id="weatherMapContainer" aria-label="Interactive weather map"></div><div class="map-caption"><span><i class="fa-solid fa-location-dot"></i> <b id="mapCity">Weather around you</b></span><span class="map-credit">Map data © OpenStreetMap</span></div></div>
+            </section>
+            <footer class="footer"><span class="footer-brand"><i class="fa-solid fa-cloud-bolt"></i> SkyCast</span><span>Real-time conditions, thoughtfully forecast.</span><span>Weather data by OpenWeather</span></footer>
+        </main>
+    </div>
+
+    <dialog id="settingsDialog" class="settings-dialog">
+        <form method="dialog" id="settingsForm">
+            <div class="dialog-heading"><div><span class="eyebrow">PERSONALIZE YOUR EXPERIENCE</span><h2>Settings</h2></div><button class="icon-button close-dialog" value="cancel" aria-label="Close settings"><i class="fa-solid fa-xmark"></i></button></div>
+            <label class="field-label" for="apiKeyInput">OpenWeather API key</label>
+            <p class="field-help">Your key is stored only in this browser. Add a key with One Call 3.0 access for UV, alerts and a full 7-day outlook.</p>
+            <div class="key-field"><input id="apiKeyInput" type="password" autocomplete="new-password" placeholder="Paste your API key"><button id="keyVisibilityBtn" type="button" class="icon-button" aria-label="Show API key"><i class="fa-regular fa-eye"></i></button></div>
+            <div class="dialog-actions"><button id="clearKeyBtn" type="button" class="text-button">Clear key</button><button id="saveSettingsBtn" type="submit" class="primary-button">Save settings</button></div>
+            <p id="settingsMessage" class="settings-message" aria-live="polite"></p>
+        </form>
+    </dialog>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
